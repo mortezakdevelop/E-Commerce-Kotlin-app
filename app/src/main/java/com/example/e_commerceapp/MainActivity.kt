@@ -2,15 +2,19 @@ package com.example.e_commerceapp
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import com.example.e_commerceapp.databinding.ActivityMainBinding
-import com.example.e_commerceapp.api.ApiService
+import com.example.e_commerceapp.hilt.api.ApiService
 import com.example.e_commerceapp.epoxy.ProductEpoxyController
 import com.example.e_commerceapp.model.domain.Product
 import com.example.e_commerceapp.model.mapper.ProductMapper
 import com.example.e_commerceapp.model.network.ProductNetwork
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -18,11 +22,10 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
 
-    @Inject
-    lateinit var apiService: ApiService
 
-    @Inject
-    lateinit var productMapper: ProductMapper
+    private val viewModel:MainActivityViewModel by lazy {
+        ViewModelProvider(this)[MainActivityViewModel::class.java]
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,17 +36,17 @@ class MainActivity : AppCompatActivity() {
         activityMainBinding.epoxyRecyclerView.setController(controller)
         controller.setData(emptyList())
 
-        lifecycleScope.launchWhenStarted {
-            val response:Response<List<ProductNetwork>> = apiService.getAllProducts()
-            val domainProduct:List<Product> = response.body()!!.map {
-                productMapper.buildFrom(it)
-            }
-            controller.setData(domainProduct)
+        viewModel.store.stateFlow.map {
+            it.products
+        }.distinctUntilChanged().asLiveData().observe(this){product ->
 
-            if(domainProduct.isEmpty()){
-                Snackbar.make(activityMainBinding.root,"data not fetch",Snackbar.LENGTH_LONG).show()
-            }
+            controller.setData(product)
+
+//            if(product.isEmpty()){
+//                Snackbar.make(activityMainBinding.root,"data not fetch",Snackbar.LENGTH_LONG).show()
+//            }
         }
+       viewModel.refreshData()
     }
 
 

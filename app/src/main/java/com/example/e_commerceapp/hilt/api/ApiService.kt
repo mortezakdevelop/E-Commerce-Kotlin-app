@@ -1,4 +1,4 @@
-package com.example.e_commerceapp.api
+package com.example.e_commerceapp.hilt.api
 
 import com.example.e_commerceapp.model.network.ProductNetwork
 import retrofit2.Response

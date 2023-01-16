@@ -1,6 +1,6 @@
 package com.example.e_commerceapp.hilt.module
 
-import com.example.e_commerceapp.api.ApiService
+import com.example.e_commerceapp.hilt.api.ApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,7 +38,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideApiService(retrofit: Retrofit):ApiService{
+    fun provideApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
     }
 }
